@@ -20,4 +20,5 @@ from django.urls import include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('macau/', include('macau_game.urls')),
+    path('auth/', include("django.contrib.auth.urls")),
 ]
