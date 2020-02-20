@@ -1,3 +1,21 @@
-*{
-    background:red;
+body{
+    background: white;
 }
+
+header{
+    background: orange;
+    width: 100vw;
+    height:5vw;
+}
+
+.grid-main{
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+}
+
+form{
+    grid-column: 3;
+}
+
+
+

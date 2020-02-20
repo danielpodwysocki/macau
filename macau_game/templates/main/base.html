@@ -4,7 +4,21 @@
 
 <head>
     <title>Macau</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}"/>
 </head>
 
 <body>
+    <header>
+
+    </header>
+    <div class="grid-main">
+        {% block content %}
+        {% endblock content %}
+    </div>
+
+    <footer>
+
+    </footer>
+</body>
+</html>
