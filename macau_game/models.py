@@ -10,6 +10,7 @@ class Game(models.Model):
         Represents a game and gives us info about it: is it finished and how many players are in it
     '''
     player_count = models.PositiveSmallIntegerField()
+    full = models.BooleanField()
     top_card = models.SmallIntegerField()
     is_finished = models.BooleanField()
     # number of the starting player, assuming they move in a clockwise fashion and are sorted by id
