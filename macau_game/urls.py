@@ -9,5 +9,6 @@ urlpatterns = [
     path('game', views.game, name='game'),
     path('move', views.move, name='move'),
     path('state', views.state, name='state'),
+    path('error', views.error, name='error'),
 
 ]

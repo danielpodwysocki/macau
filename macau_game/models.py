@@ -50,7 +50,7 @@ class Card(models.Model):
 
 class Seat(models.Model):
     '''
-        ties player to game, tells us what seat he's in and if he's finished
+        ties player to game, tells us what seat he's "in" and if he's finished
     '''
     game = models.ForeignKey(to=Game, on_delete=models.CASCADE)
     player = models.ForeignKey(to=User, on_delete=models.CASCADE)
