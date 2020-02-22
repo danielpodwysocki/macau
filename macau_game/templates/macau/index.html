@@ -1,0 +1,13 @@
+{% extends 'main/base.html' %}
+
+
+{% block content %}
+{% load crispy_forms_tags %}]
+<form method='POST' action='start_game'>
+    {% csrf_token %}
+    {{f_start_game|crispy}}
+    <button type='submit'> Start a game </button>
+
+</form>
+
+{% endblock content %}
