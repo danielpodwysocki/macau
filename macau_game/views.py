@@ -41,8 +41,25 @@ def start_game(request):  # TODO: error messages (after error view is finished)
 
 @login_required
 @decorators.not_in_game
-def join_game(request):  # TODO
-    return HttpResponse('join_game')
+# TODO: error messages (after error view is finished)
+def join_game(request):
+    if request.method != 'POST':
+        return redirect('error')
+    form = forms.JoinGame(request.POST)
+    if(form.is_valid()) is False:
+        return redirect('error')
+    game = models.Game.objects.get(pk=form.cleaned_data['game_id'])
+    seat_count = models.Seat.objects.filter(game=game).count()
+    if seat_count >= game.player_count:
+        return redirect('error')
+    seat = models.Seat(player=request.user, game=game,
+                       seat_number=seat_count, done=False)
+    seat.save()
+    if seat_count+1 == game.player_count:
+        game.full = True
+        game.save()
+
+    return redirect('game')
 
 
 @login_required
