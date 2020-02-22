@@ -2,7 +2,7 @@
 
 
 {% block content %}
-{% load crispy_forms_tags %}]
+{% load crispy_forms_tags %}
 <form method='POST' action='start_game'>
     {% csrf_token %}
     {{f_start_game|crispy}}
