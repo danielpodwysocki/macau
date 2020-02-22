@@ -54,5 +54,5 @@ class Seat(models.Model):
     '''
     game = models.ForeignKey(to=Game, on_delete=models.CASCADE)
     player = models.ForeignKey(to=User, on_delete=models.CASCADE)
-    seat_number = models.SmallIntegerField()
+    seat_number = models.SmallIntegerField()  # counted from 0
     done = models.BooleanField()

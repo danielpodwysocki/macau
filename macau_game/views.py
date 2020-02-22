@@ -9,7 +9,9 @@ from random import randrange
 @login_required
 def index(request):  # TODO: this view lets you create or join a game
     u = request.user  # just for testing untill i make the index page
-    return HttpResponse(u.username)
+
+    context = {'f_start_game': forms.StartGame}
+    return render(request, 'macau/index.html', context)
 
 
 @login_required
@@ -33,11 +35,15 @@ def start_game(request):  # TODO: error messages (after error view is finished)
     game = models.Game(player_count=player_count, is_finished=False,
                        starting_player=randrange(1, player_count+1), top_card=randrange(1, 53))
     game.save()
+    seat = models.Seat(player=request.user, game=game,
+                       seat_number=0, done=False)
+    seat.save()
     return(redirect('game'))
 
 
 @login_required
 def join_game(request):  # TODO
+
     return HttpResponse('join_game')
 
 
