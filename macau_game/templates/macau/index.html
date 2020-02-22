@@ -7,7 +7,15 @@
     {% csrf_token %}
     {{f_start_game|crispy}}
     <button type='submit'> Start a game </button>
-
+    
 </form>
+
+<form method='POST' action='join_game'>
+    {% csrf_token %}
+    {{f_join_game|crispy}}
+    <button type='submit'> Join a game </button>
+    
+</form>
+
 
 {% endblock content %}
