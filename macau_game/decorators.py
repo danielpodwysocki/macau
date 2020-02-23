@@ -8,7 +8,23 @@ def not_in_game(function):
         last_seat = Seat.objects.filter(
             done=False, player=request.user).count()
         if last_seat != 0:
-            return(redirect('game'))
+            return redirect('game')
+        else:
+            return function(request, *args, **kwargs)
+    wrap.__doc__ = function.__doc__
+    wrap.__name__ = function.__name__
+    return wrap
+
+
+def in_game(function):
+    '''
+    if the player is not in an active game, redirect to index
+    '''
+    def wrap(request, *args, **kwargs):
+        last_seat = Seat.objects.filter(
+            done=False, player=request.user).count()
+        if last_seat == 0:
+            return redirect('game')
         else:
             return function(request, *args, **kwargs)
     wrap.__doc__ = function.__doc__
