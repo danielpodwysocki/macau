@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from macau_game import models, forms
 from random import randrange
 from macau_game import decorators
+from random import choices, choice
+
 # Create your views here.
 
 
@@ -30,8 +32,17 @@ def start_game(request):  # TODO: error messages (after error view is finished)
         return redirect('error')
 
     player_count = form.cleaned_data['player_count']
+
+    deck = list(range(1, 53))
+
+    # remove "actionable" cards from the deck from which we pick the top card
+    banned = [1, 2, 3, 4, 11, 12, 13]
+    for i in range(4):
+        for b in banned:
+            deck.remove(13*i+b)
+
     game = models.Game(player_count=player_count, is_finished=False,
-                       starting_player=randrange(1, player_count+1), top_card=randrange(1, 53))
+                       starting_player=randrange(1, player_count+1), top_card=choice(deck), full=False)
     game.save()
     seat = models.Seat(player=request.user, game=game,
                        seat_number=0, done=False)
@@ -58,6 +69,16 @@ def join_game(request):
     if seat_count+1 == game.player_count:
         game.full = True
         game.save()
+        # 'deal out' the cards to players:
+        deck = list(range(1, 53))
+        deck.remove(game.top_card)
+        seats = list(models.Seat.objects.filter(game=game))
+        for s in seats:
+            hand = choices(deck, k=5)
+            for card in hand:
+                deck.remove(card)
+                c = models.Card(game=game, card=card, player=s.player)
+                c.save()
 
     return redirect('game')
 
