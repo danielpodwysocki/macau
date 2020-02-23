@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from macau_game import models, forms
 from random import randrange
 from macau_game import decorators
 from random import choices, choice
+import json
 
 # Create your views here.
 
@@ -95,10 +96,52 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
     return HttpResponse('move')
 
 
-# TODO: return a json with the current state of the game, containing special conditions, etc.
+# TODO: return a json with the current state of the game, containing special macau game conditions(battle, demand, etc) and other info.
 @login_required
+@decorators.in_game
 def state(request):
-    return HttpResponse('state')
+    '''
+        returns a json with the current state of the game, represented by:
+        player_count - amount of players
+        hands[] - an array that has a number of cards for each hand, except for the player making the request.
+        instead of his no. of cards we have a nested array containg his exact hand, so it can be displayed.
+        0 represents a player that has either resigned, won/finished (got rid of all his cards) or an empty seat yet to be joined
+        full - tells us if we're still waiting for more players
+        position - our player's position at the table (his seat no., counting from 0) - this is needed, since from the player's view
+        he always sits at the "bottom" of the "table" (viewport)
+        top_cards - an arr containg all the already thrown cards (TODO:)that haven't yet been reshuffled into the deck 
+
+        in the below comments the "user" refers to the one that made the request for the json,
+        players are the rest of the people playing
+    '''
+    user = request.user
+    seat = models.Seat.objects.get(
+        done=False, player=request.user)
+    game = seat.game
+    throws = list(models.Throw.objects.filter(move__game=game).order_by(
+        '-pk')[10:].values_list('card', flat=True))
+
+    response = {}
+    response['player_count'] = game.player_count
+    response['hands'] = []
+    response['full'] = game.full
+    response['position'] = seat.seat_number
+    response['top_cards'] = throws
+
+    if game.full:
+        # flat=True for values instead of one-tuples
+        user_hand = list(models.Card.objects.filter(
+            player=user).values_list('card', flat=True))
+        # we append the amount of cards each has (except for the user, we append his hand)
+        for i in range(game.player_count):
+            if i == seat.seat_number:
+                response['hands'].append(user_hand)
+
+            player = models.Seat.objects.get(game=game, seat_number=i).player
+            response['hands'].append(
+                models.Card.objects.filter(game=game, player=player).count())
+
+    return JsonResponse(response)
 
 
 def error(request):  # TODO: returns an error message explaining what went wrong
