@@ -85,8 +85,9 @@ def join_game(request):
 
 
 @login_required
-def game(requst):  # TODO the game view
-    return HttpResponse('game')
+@decorators.in_game
+def game(request):  # TODO the game view
+    return render(request, 'macau/game.html')
 
 
 @login_required
