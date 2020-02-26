@@ -129,6 +129,12 @@ def state(request):
     response['position'] = seat.seat_number
     response['top_cards'] = throws
 
+    if len(throws) > 0:
+        response['active_player'] = models.Seat.objects.get(
+            done=False, player=throws[0].move.player).seat_number
+    else:
+        response['active_player'] = game.starting_player
+
     if game.full:
         # flat=True for values instead of one-tuples
         user_hand = list(models.Card.objects.filter(
