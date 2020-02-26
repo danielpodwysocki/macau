@@ -111,7 +111,7 @@ def state(request):
         position - our player's position at the table (his seat no., counting from 0) - this is needed, since from the player's view
         he always sits at the "bottom" of the "table" (viewport)
         top_cards - an arr containg all the already thrown cards (TODO:)that haven't yet been reshuffled into the deck 
-
+        active_player - a number signyfing which players turn it is
         in the below comments the "user" refers to the one that made the request for the json,
         players are the rest of the people playing
     '''
@@ -137,10 +137,11 @@ def state(request):
         for i in range(game.player_count):
             if i == seat.seat_number:
                 response['hands'].append(user_hand)
-
-            player = models.Seat.objects.get(game=game, seat_number=i).player
-            response['hands'].append(
-                models.Card.objects.filter(game=game, player=player).count())
+            else:
+                player = models.Seat.objects.get(
+                    game=game, seat_number=i).player
+                response['hands'].append(
+                    models.Card.objects.filter(game=game, player=player).count())
 
     return JsonResponse(response)
 
