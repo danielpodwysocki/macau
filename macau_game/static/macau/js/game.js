@@ -17,10 +17,10 @@ async function update_json() {
 
         });
     await new Promise(r => setTimeout(r, 1000)); //apparently async is now hte optimal way to do a "sleep"
-    update();
+    update_json();
 }
 
-update();
+update_json();
 
 
 
