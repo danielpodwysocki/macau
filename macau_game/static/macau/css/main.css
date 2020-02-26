@@ -8,7 +8,7 @@ header{
     height:5vw;
 }
 
-.grid-main{
+#grid-main{
     display: grid;
     grid-template-columns: repeat(5,1fr);
 }
