@@ -20,9 +20,7 @@ function create_players(state) {
     let grid = document.getElementById('grid-game_players');
 
     for (let i = 0; i < state.player_count - 1; i++) {
-        if (i + 1 == state.player_count)
-            grid.innerHTML += "<div class='player'>" + "player " + (i + 1).toString() + "<div class='player-cards'></div></div>&#13";
-        player_number++;
+        grid.innerHTML += "<div class='player'>" + "player " + (i + 1).toString() + "<div class='player-cards'></div></div>&#13";
     }
 
 }
@@ -46,6 +44,7 @@ function update_cards(state) { //TODO: visually represent cards/their amount of 
 
             players[current_seat].innerHTML = "";
             for (let j = 0; j < state.hands[i]; j++) players[current_seat].innerHTML += "c"; //TODO: change to a visual repres. of a card
+            current_seat++;
         }
     }
 }
