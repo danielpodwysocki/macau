@@ -25,6 +25,34 @@ function create_players(state) {
 
 }
 
+function active_player(state) {
+    //add the "game-active" class to a player/user div and removes it from everybody else
+    let user = document.getElementById("game_user_hand");
+    let players = document.getElementsByClassName("player");
+
+    user.classList.remove("game-active");
+
+    for (let i = 0; i < players.length; i++) players[i].classList.remove("game-active");
+
+    if (state.active_player == state.position) {
+        user.classList.add("game-active");
+    }
+    else {
+        let player = state.position + 1;
+        for (let i = 0; i < players.length; i++) {
+            if (state.active_player + i == player) {
+                players[i].classList.add("game-active");
+                break;
+            }
+            else if (state.active_player + i >= state.player_count) {
+                player = 0;
+            }
+        }
+
+    }
+
+}
+
 
 function update_cards(state) { //TODO: visually represent cards/their amount of each player 
     let players = document.getElementsByClassName("player-cards");
@@ -60,6 +88,7 @@ async function update_json() {
                     players_created = true;
                 }
                 update_cards(data);
+                active_player(data);
                 console.log(JSON.stringify(data)); //TODO: remove after the view is done
             }
 
