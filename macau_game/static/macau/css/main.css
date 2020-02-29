@@ -17,5 +17,21 @@ form{
     grid-column: 3;
 }
 
+.user-card{
+    float:left;
+}
+
+.user-card:hover{
+    background:red;
+}
+
+.game-active .player-cards{
+    background: yellow;
+}
+
+.game-active #game-user-hand{
+    background: yellow;
+}
+
 
 

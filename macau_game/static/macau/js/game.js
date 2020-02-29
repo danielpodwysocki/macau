@@ -65,7 +65,7 @@ function update_cards(state) { //TODO: visually represent cards/their amount of 
             user.innerHTML = "";
 
             for (let j = 0; j < state.hands[i].length; j++) {
-                user.innerHTML += card_to_name(state.hands[i][j]) + " ";
+                user.innerHTML += "<div class='user-card'>" + card_to_name(state.hands[i][j]) + "</div>&#13";
             }
         }
         else {
