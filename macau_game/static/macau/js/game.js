@@ -25,7 +25,21 @@ function create_players(state) {
 
 }
 
-function active_player(state) {
+function update_info(state) {
+    let game_full = document.getElementById("game_full");
+    let game_top_cards = document.getElementById("game_top_cards");
+    let game_player_count = document.getElementById("game_player_count");
+
+    if (state.full) game_full.innerHTML = "Full";
+    else game_full.innerHTML = "Not enough players";
+
+    game_player_count.innerHTML = "Lobby size: " + state.player_count;
+    game_top_cards.innerHTML = game_top_cards[0]; //TODO: style it to look nice and make it all the top cards, not just the top one
+
+
+}
+
+function update_active_player(state) {
     //add the "game-active" class to a player/user div and removes it from everybody else
     let user = document.getElementById("game_user_hand");
     let players = document.getElementsByClassName("player");
@@ -88,12 +102,12 @@ async function update_json() {
                     players_created = true;
                 }
                 update_cards(data);
-                active_player(data);
+                update_active_player(data);
                 console.log(JSON.stringify(data)); //TODO: remove after the view is done
             }
 
         });
-    await new Promise(r => setTimeout(r, 1000)); //apparently async is now hte optimal way to do a "sleep"
+    await new Promise(r => setTimeout(r, 1000)); //apparently async is now the optimal way to do a "sleep"
     update_json();
 }
 
