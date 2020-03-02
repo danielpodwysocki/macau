@@ -1,5 +1,6 @@
 var data;
 var players_created = false;
+var chosen_cards = [];
 
 function card_to_name(card) {
     //returns a string with a human-friendly represantation of the card
@@ -69,8 +70,8 @@ function update_active_player(state) {
 
 
 function update_cards(state) { //TODO: visually represent cards/their amount of each player 
+    chosen_cards = [];
     let players = document.getElementsByClassName("player-cards");
-    console.log(players.length);
     let user = document.getElementById("game_user_hand");
     let current_seat = 0; //the seat that we're updating the cards for
 
@@ -89,13 +90,27 @@ function update_cards(state) { //TODO: visually represent cards/their amount of 
             current_seat++;
         }
     }
+    let user_cards = document.getElementsByClassName("user-card");
+
+    for (let i = 0; i < user_cards.length; i++) user_cards[i].addEventListener("click", function (event) {
+        let card = event.target;
+        if (card.matches(".card-toggled")) {
+            card.classList.remove("card-toggled");
+            chosen_cards.splice(chosen_cards.indexOf(state.hands[state.position][i]), 1);
+        }
+        else {
+            card.classList.add("card-toggled");
+            chosen_cards.push(state.hands[state.position][i]);
+        }
+    });
 }
 
 async function update_json() {
     fetch("state")
         .then(resp => resp.json())
         .then(resp => {
-            if (data != resp) {
+            console.log(chosen_cards)
+            if (data == undefined || data.move_count != resp.move_count) {
                 data = resp;
                 if (!players_created) {
                     create_players(data);
@@ -103,7 +118,6 @@ async function update_json() {
                 }
                 update_cards(data);
                 update_active_player(data);
-                console.log(JSON.stringify(data)); //TODO: remove after the view is done
             }
 
         });
