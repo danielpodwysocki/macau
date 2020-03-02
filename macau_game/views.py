@@ -110,10 +110,11 @@ def state(request):
         full - tells us if we're still waiting for more players
         position - our player's position at the table (his seat no., counting from 0) - this is needed, since from the player's view
         he always sits at the "bottom" of the "table" (viewport)
-        top_cards - an arr containg all the already thrown cards (TODO:)that haven't yet been reshuffled into the deck 
+        top_cards - an arr containg all the already thrown cards (TODO:)that haven't yet been reshuffled into the deck
         active_player - a number signyfing which players turn it is
         in the below comments the "user" refers to the one that made the request for the json,
         players are the rest of the people playing
+        move_count - it lets us know if the game has advanced
     '''
     user = request.user
     seat = models.Seat.objects.get(
@@ -121,6 +122,7 @@ def state(request):
     game = seat.game
     throws = list(models.Throw.objects.filter(move__game=game).order_by(
         '-pk')[10:].values_list('card', flat=True))
+    move_count = models.Move.objects.filter(game=game).count()
 
     response = {}
     response['player_count'] = game.player_count
@@ -128,6 +130,7 @@ def state(request):
     response['full'] = game.full
     response['position'] = seat.seat_number
     response['top_cards'] = throws
+    response['move_count'] = move_count
 
     if len(throws) > 0:
         response['active_player'] = models.Seat.objects.get(
