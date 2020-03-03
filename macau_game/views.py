@@ -91,10 +91,27 @@ def game(request):  # TODO the game view
 
 
 @login_required
+@decorators.in_game
 def move(request):  # TODO: submit a move, evaluate if it's legal, if it is create and/or update consequential models
     # we create a new move model after each move, because we want a to have a history of all moves, kind of like on lichess.org
     # also end the game if the move is the last one
-    return HttpResponse('move')
+    response = {}
+    response['return'] = 'test'
+    if request.method == 'POST' and request.POST.get('throws') != None:
+
+        throws = request.POST.get('throws')
+        user = request.user
+        seat = models.Seat.objects.get(
+            done=False, player=request.user)
+        game = seat.game
+        top_cards = list(models.Throw.objects.filter(move__game=game).order_by(
+            '-pk')[15:].values_list('card', flat=True))  # we check 15 cards because of the 'battle' cards needing to be added up
+        if len(top_cards) < 0:
+            top_cards = game.top_card
+
+    else:
+        response['return'] = 'bad_request'
+        return JsonResponse(resp)
 
 
 # TODO: return a json with the current state of the game, containing special macau game conditions(battle, demand, etc) and other info.
@@ -137,6 +154,7 @@ def state(request):
             done=False, player=throws[0].move.player).seat_number
     else:
         response['active_player'] = game.starting_player
+        response['top_cards'] = game.top_card
 
     if game.full:
         # flat=True for values instead of one-tuples

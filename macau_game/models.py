@@ -15,6 +15,7 @@ class Game(models.Model):
     is_finished = models.BooleanField()
     # number of the starting player, assuming they move in a clockwise fashion and are sorted by id
     starting_player = models.SmallIntegerField()
+    special_state = models.SmallIntegerField(default=0)
 
 
 class Move(models.Model):
