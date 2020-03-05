@@ -106,7 +106,7 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
         game = seat.game
         top_cards = list(models.Throw.objects.filter(move__game=game).order_by(
             '-pk')[15:].values_list('card', flat=True))  # we check 15 cards because of the 'battle' cards needing to be added up
-        if len(top_cards) < 0:
+        if len(top_cards) == 0:
             top_cards = game.top_card
 
     else:
