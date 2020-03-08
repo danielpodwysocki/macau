@@ -5,7 +5,9 @@ from macau_game import models, forms
 from random import randrange
 from macau_game import decorators
 from random import choices, choice
+from math import ceil
 import json
+
 
 # Create your views here.
 
@@ -97,7 +99,11 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
     # also end the game if the move is the last one
     response = {}
     response['return'] = 'test'
-    if request.method == 'POST' and request.POST.get('throws') != None:
+    try:
+
+        # check request method and parameters
+        if request.method != 'POST' or request.POST.get('throws') == None:
+            raise Exception('bad_request')
 
         throws = request.POST.get('throws')
         user = request.user
@@ -107,11 +113,23 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
         top_cards = list(models.Throw.objects.filter(move__game=game).order_by(
             '-pk')[15:].values_list('card', flat=True))  # we check 15 cards because of the 'battle' cards needing to be added up
         if len(top_cards) == 0:
-            top_cards = game.top_card
+            top_cards = [game.top_card]
 
-    else:
-        response['return'] = 'bad_request'
-        return JsonResponse(resp)
+        # check if all of the cards in the throw have the same value, otherwise throw an Exception
+
+        sample = throws[0]
+        sample_suit = ceil(throws[0]/13)
+        sample_value = sample-(sample_suit-1)*13
+        for t in throws:
+            t_suit = ceil(t*13)
+            t_value = t - (t_suit-1)*13
+            if t_value != sample_value:
+                raise Exception('bad_throw')
+        # check if there's a battle and if so if the cards addresses that TODO:
+
+    except Exception as e:
+        response['return'] = e.args
+        return JsonResponse(response)
 
 
 # TODO: return a json with the current state of the game, containing special macau game conditions(battle, demand, etc) and other info.
