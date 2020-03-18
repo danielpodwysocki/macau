@@ -119,13 +119,58 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
 
         sample = throws[0]
         sample_suit = ceil(throws[0]/13)
-        sample_value = sample-(sample_suit-1)*13
+        sample_value = sample - (sample_suit-1) * 13
+        # since this card skips all checks we'll make a variable for it to avoid complex if statements
+        queen_of_spades = False
         for t in throws:
             t_suit = ceil(t*13)
             t_value = t - (t_suit-1)*13
             if t_value != sample_value:
                 raise Exception('bad_throw')
-        # check if there's a battle and if so if the cards addresses that TODO:
+            if t_suit == 2 and t_value == 12:
+                queen_of_spades = True
+        # check if there's a battle and if so if the cards addresses that TODO
+        if game.special_state > 0:
+            battle_values = [2, 3, 13]
+            if sample_value not in battle_values or sample_value != 12 and sample_suit != 2:
+                raise Exception('bad_throw')
+
+        # Next two ifs check if there is a pending demand and if the bottom card of the throw addresses that
+        # bottom card meaning throws[0] (represented by sample_value and sample_suit),
+        # as it is the first card to be thrown and ends up on top of the card that's currently on top
+
+        # check for a demand indicating the value of a card and if response matches the demand,
+        # eventually if the demand can still be change (if a jack is on top and the user has thrown a jack)
+        if game.special_state < 0 and game.special_state >= -13 and queen_of_spades is False:
+            demand_value = game.special_state*(-1)
+            # last card thrown, aka the top card of the game
+            top_card = game.top_card
+            top_card_suit = ceil(top_card/13)
+            top_card_value = top_card - (top_card_suit-1) * 13
+
+            if sample_value == demand_value:
+                pass
+            elif top_card_value == 11 == sample_value:
+                pass
+            else:
+                raise Exception('bad_throw')
+
+        # check for a demand indicating the suit of a thrown card and if the response matches the demand or
+        # can be changed by throwing an ace (while an ace is still on top)
+        if game.special_state < -13 and queen_of_spades is False:
+            # adjusting for the value scheme for the demand outlined in models.Game
+            demand_suit = game.special_state * (-1) / 10 - 2
+
+            top_card = game.top_card
+            top_card_suit = ceil(top_card/13)
+            top_card_value = top_card - (top_card_suit-1) * 13
+
+            if demand_suit == sample_suit:
+                pass
+            elif top_card_value == 1 == sample_value:
+                pass
+            else:
+                raise Exception('bad_throw')
 
     except Exception as e:
         response['return'] = e.args
