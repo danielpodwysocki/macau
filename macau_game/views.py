@@ -118,8 +118,31 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
             # if it's the first move of the game, get the top card from the Game model
             top_card = game.top_card
 
-        # check if all of the cards in the throw have the same value, otherwise throw an Exception
+        if throws[0] == 'draw':  # check if the user is drawing cards instead of playing them
 
+            # TODO: Prepare for a case in which all the cards had been drawn and there's no more cards in the deck
+            # (maybe a 'debt' system of drawing cards as soon as they become available?)
+            to_draw = 1
+            if game.special_state < 0 and game.special_state >= -13:
+                to_draw = abs(game.special_state)
+            player_cards = models.Card.objects.filter(
+                game=game).values_list('card', flat=True)  # card values to be excluded from drawing, because they belong to players
+
+            # removing cards already in play
+            deck = list(range(1, 53))
+            for c in player_cards:
+                deck.remove(c)
+            deck.remove(game.top_card)
+
+            drawn_cards = choices(deck, k=to_draw)
+            for card in drawn_cards:
+                c = models.Card(game=game, card=card, player=user)
+                c.save()
+
+            response['return'] = 'ok'
+            return JsonResponse(response)
+
+            # check if all of the cards in the throw have the same value, otherwise throw an Exception
         sample = throws[0]
         sample_suit = ceil(throws[0]/13)
         sample_value = sample - (sample_suit-1) * 13
@@ -199,6 +222,8 @@ def state(request):
         in the below comments the "user" refers to the one that made the request for the json,
         players are the rest of the people playing
         move_count - it lets us know if the game has advanced
+
+        TODO: adjust for the drawing scheme in views.move, that breaks the mechanism of figuring out active_player
     '''
     user = request.user
     seat = models.Seat.objects.get(
