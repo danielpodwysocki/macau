@@ -110,10 +110,13 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
         seat = models.Seat.objects.get(
             done=False, player=request.user)
         game = seat.game
-        top_cards = list(models.Throw.objects.filter(move__game=game).order_by(
-            '-pk')[15:].values_list('card', flat=True))  # we check 15 cards because of the 'battle' cards needing to be added up
-        if len(top_cards) == 0:
-            top_cards = [game.top_card]
+        top_card = list(models.Throw.objects.filter(move__game=game).order_by(
+            '-pk')[0].values_list('card', flat=True))  # get the top card
+        # we recognize the current battle state based on the Game.special_state, so we don't need to have a complete history of throws
+
+        if len(top_card) == 0:
+            # if it's the first move of the game, get the top card from the Game model
+            top_card = game.top_card
 
         # check if all of the cards in the throw have the same value, otherwise throw an Exception
 
@@ -132,6 +135,7 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
         # check if there's a battle and if so if the cards addresses that TODO
         if game.special_state > 0:
             battle_values = [2, 3, 13]
+            # also check for the queen of spades
             if sample_value not in battle_values or sample_value != 12 and sample_suit != 2:
                 raise Exception('bad_throw')
 
