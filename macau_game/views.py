@@ -223,7 +223,7 @@ def state(request):
         players are the rest of the people playing
         move_count - it lets us know if the game has advanced
 
-        TODO: adjust for the drawing scheme in views.move, that breaks the mechanism of figuring out active_player
+        TODO: Refactor the adjustement for the drawing scheme in views.move, it's messy and hard to read
     '''
     user = request.user
     seat = models.Seat.objects.get(
@@ -242,8 +242,28 @@ def state(request):
     response['move_count'] = move_count
 
     if len(throws) > 0:
-        response['active_player'] = models.Seat.objects.get(
-            done=False, player=throws[0].move.player).seat_number
+        last_move = models.Move.objects.filter(game=game).latest()
+        last_player = move.player
+        last_seat = models.Seat.objects.get(game=game, player=last_player)
+        seats = list(models.Seat.objects.filter(
+            game=game).order_by('-pk'))
+        if len(seats) > 1:
+            if last_seat.seat_number+1 == game.player_count:  # check if we need to "go around the table" again
+                response['active_player'] = seats[0].seat_number
+            else:
+                for i, seat in enumerate(seats):
+                    if seat.seat_number == last_seat.seat_number:
+                        for j in range(len(seats)):
+                            if i+j > game.player_count-1:
+                                seats_active = list(models.Seat.objects.filter(
+                                    game=game, done=False).order_by('-pk'))
+                                response['active_player'] = seats_active[0].seat_number
+                                break
+                            elif seats[i+j].done is False:
+                                response['active_player'] = seats[i +
+                                                                  j].seat_number
+                                break
+                        break
     else:
         response['active_player'] = game.starting_player
         response['top_cards'] = game.top_card
