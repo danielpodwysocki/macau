@@ -223,7 +223,6 @@ def state(request):
         players are the rest of the people playing
         move_count - it lets us know if the game has advanced
 
-        TODO: Refactor the adjustement for the drawing scheme in views.move, it's messy and hard to read
     '''
     user = request.user
     seat = models.Seat.objects.get(
@@ -247,21 +246,23 @@ def state(request):
         last_seat = models.Seat.objects.get(game=game, player=last_player)
         seats = list(models.Seat.objects.filter(
             game=game).order_by('-pk'))
+        seats_active = list(models.Seat.objects.filter(
+            game=game, done=False).order_by('-pk'))
         if len(seats) > 1:
             if last_seat.seat_number+1 == game.player_count:  # check if we need to "go around the table" again
-                response['active_player'] = seats[0].seat_number
+                response['active_player'] = seats_active[0].seat_number
+            # get the next active (yet to have finished the game) player seat number
             else:
-                for i, seat in enumerate(seats):
-                    if seat.seat_number == last_seat.seat_number:
-                        for j in range(len(seats)):
-                            if i+j > game.player_count-1:
-                                seats_active = list(models.Seat.objects.filter(
-                                    game=game, done=False).order_by('-pk'))
-                                response['active_player'] = seats_active[0].seat_number
-                                break
-                            elif seats[i+j].done is False:
-                                response['active_player'] = seats[i +
-                                                                  j].seat_number
+                last_seat_index = seats.index(last_seat)
+                for i in range(1, len(seats)):
+                    if last_seat_index + i < len(seats):
+                        if seats[last_seat_index+1].done is False:
+                            response['active_player'] = seats[last_seat_index+1].seat_number
+                            break
+                    else:
+                        for s in seats:
+                            if s.done is False:
+                                response['active_player'] = s.seat_number
                                 break
                         break
     else:
