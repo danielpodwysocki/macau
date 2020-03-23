@@ -246,15 +246,13 @@ def state(request):
         last_seat = models.Seat.objects.get(game=game, player=last_player)
         seats = list(models.Seat.objects.filter(
             game=game).order_by('-pk'))
-        seats_active = list(models.Seat.objects.filter(
-            game=game, done=False).order_by('-pk'))
         if len(seats) > 1:
             if last_seat.seat_number+1 == game.player_count:  # check if we need to "go around the table" again
                 response['active_player'] = seats_active[0].seat_number
             # get the next active (yet to have finished the game) player seat number
             else:
                 last_seat_index = seats.index(last_seat)
-                for i in range(1, len(seats)):
+                for i in range(1, len(seats)):  # going from the beginni
                     if last_seat_index + i < len(seats):
                         if seats[last_seat_index+1].done is False:
                             response['active_player'] = seats[last_seat_index+1].seat_number
