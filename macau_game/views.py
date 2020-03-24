@@ -97,8 +97,10 @@ def game(request):  # TODO the game view
 def move(request):  # TODO: submit a move, evaluate if it's legal, if it is create and/or update consequential models
     # we create a new move model after each move, because we want a to have a history of all moves, kind of like on lichess.org
     # also end the game if the move is the last one
+    # TODO: create responses other than 'ok' and 'bad_throw'
+    # TODO: implement 'special' mechanics
     response = {}
-    response['return'] = 'test'
+    response['return'] = 'ok'
     try:
 
         # check request method and parameters
@@ -139,10 +141,21 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
                 c = models.Card(game=game, card=card, player=user)
                 c.save()
 
+            # create a move, don't tie any cards to it (since we didn't place any)
+            move = models.Move(player=user, game=game)
+            move.save()
+
             response['return'] = 'ok'
             return JsonResponse(response)
 
-            # check if all of the cards in the throw have the same value, otherwise throw an Exception
+        # check if the submitted cards are in the user's hand
+        for t in throws:
+            card_count = models.Card.filter(player=user, card=t).count
+            if count == 0:
+                response['return'] = 'bad_throw'
+                return JsonResponse(response)
+
+        # check if all of the cards in the throw have the same value, otherwise throw an Exception
         sample = throws[0]
         sample_suit = ceil(throws[0]/13)
         sample_value = sample - (sample_suit-1) * 13
@@ -199,6 +212,17 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
             else:
                 raise Exception('bad_throw')
 
+            # create the move object, delete cards from the player's hand, create the throw model
+            move = models.Move(player=user, game=game)
+            move.save()
+            for c in throws:  # c representing the value of a card
+                card = models.Card.get(game=game, player=user, card=c)
+                card.delete()
+                throw = models.Throw(move=move, card=c)
+                throw.save()
+            # return 'ok'
+            return JsonResponse(response)
+
     except Exception as e:
         response['return'] = e.args
         return JsonResponse(response)
@@ -252,7 +276,9 @@ def state(request):
             # get the next active (yet to have finished the game) player seat number
             else:
                 last_seat_index = seats.index(last_seat)
-                for i in range(1, len(seats)):  # going from the beginni
+                # going from the position of last active player we check for the next active one.
+                for i in range(1, len(seats)):
+                    # upon reaching the end of seats arr, we just grab the first player at the table that is still active
                     if last_seat_index + i < len(seats):
                         if seats[last_seat_index+1].done is False:
                             response['active_player'] = seats[last_seat_index+1].seat_number
