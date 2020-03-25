@@ -94,9 +94,9 @@ def game(request):  # TODO the game view
 
 @login_required
 @decorators.in_game
-def move(request):  # TODO: submit a move, evaluate if it's legal, if it is create and/or update consequential models
+def move(request):
     # we create a new move model after each move, because we want a to have a history of all moves, kind of like on lichess.org
-    # also end the game if the move is the last one
+    # also end the game if the move is the last one (defined by there being one player left in the game)
     # TODO: create responses other than 'ok' and 'bad_throw'
     # TODO: implement 'special' mechanics
     response = {}
@@ -220,6 +220,17 @@ def move(request):  # TODO: submit a move, evaluate if it's legal, if it is crea
                 card.delete()
                 throw = models.Throw(move=move, card=c)
                 throw.save()
+            # if the user's hand is now empty, change the Seat.done to True
+            cards_left = models.Card.filter(game=game, player=user).count()
+            if cards_left == 0:
+                seat.done = True
+                seat.save()
+                # now check if there's more than 1 player left, if not end the game
+                seat_count = models.Seat.filter(game=game, done=False).count()
+                if seat_count <= 0:
+                    game.is_finished = True
+                    game.save()
+
             # return 'ok'
             return JsonResponse(response)
 
