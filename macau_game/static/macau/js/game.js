@@ -2,6 +2,19 @@ var data;
 var players_created = false;
 var chosen_cards = [];
 
+function submit_move(draw) {
+    //sends a POST request with chosen_cards to the move view
+    //the draw parameter indicates whether or not to draw cards instead of throwing them
+    let req = new XMLHttpRequest();
+    req.open("POST", "move", true)
+    if (draw) {
+        req.send("throw=draw")
+    }
+    else {
+        req.send("throw=" + JSON.stringify(chosen_cards));
+    }
+}
+
 function card_to_name(card) {
     //returns a string with a human-friendly represantation of the card
     suits = ['&#9827;', '&#9829;', '&#9824;', '&#9830;']; //unicode for clubs, hearts, spades and diamonds (CHaSeD order)
