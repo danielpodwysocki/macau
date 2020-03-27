@@ -2,16 +2,38 @@ var data;
 var players_created = false;
 var chosen_cards = [];
 
+function getCookie(name) { //For the CSRF token
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function submit_move(draw) {
     //sends a POST request with chosen_cards to the move view
     //the draw parameter indicates whether or not to draw cards instead of throwing them
     let req = new XMLHttpRequest();
+    let csrftoken = getCookie('csrftoken');
+
     req.open("POST", "move", true)
+    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    req.setRequestHeader('X-CSRFToken', csrftoken)
+
     if (draw) {
         req.send("throw=draw")
     }
     else {
-        req.send("throw=" + JSON.stringify(chosen_cards));
+        req.send("throws=" + JSON.stringify(chosen_cards));
+        console.log('xd');
     }
 }
 
@@ -42,14 +64,11 @@ function create_players(state) {
 function update_info(state) {
     let game_full = document.getElementById("game_full");
     let game_top_cards = document.getElementById("game_top_cards");
-    let game_player_count = document.getElementById("game_player_count");
 
     if (state.full) game_full.innerHTML = "Full";
     else game_full.innerHTML = "Not enough players";
 
-    game_player_count.innerHTML = "Lobby size: " + state.player_count;
-    game_top_cards.innerHTML = game_top_cards[0]; //TODO: style it to look nice and make it all the top cards, not just the top one
-
+    game_top_cards.innerHTML = card_to_name(state.top_cards);
 
 }
 
@@ -84,6 +103,7 @@ function update_active_player(state) {
 
 function update_cards(state) { //TODO: visually represent cards/their amount of each player 
     chosen_cards = [];
+    console.log(state)
     let players = document.getElementsByClassName("player-cards");
     let user = document.getElementById("game_user_hand");
     let current_seat = 0; //the seat that we're updating the cards for
@@ -122,7 +142,7 @@ async function update_json() {
     fetch("state")
         .then(resp => resp.json())
         .then(resp => {
-            console.log(chosen_cards)
+            //console.log(chosen_cards)
             if (data == undefined || data.move_count != resp.move_count) {
                 data = resp;
                 if (!players_created) {
@@ -131,6 +151,7 @@ async function update_json() {
                 }
                 update_cards(data);
                 update_active_player(data);
+                update_info(data);
             }
 
         });

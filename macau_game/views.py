@@ -99,6 +99,7 @@ def move(request):
     # also end the game if the move is the last one (defined by there being one player left in the game)
     # TODO: create responses other than 'ok' and 'bad_throw'
     # TODO: implement 'special' mechanics
+    # TODO: check if it's the user's turn
     response = {}
     response['return'] = 'ok'
     try:
@@ -107,16 +108,16 @@ def move(request):
         if request.method != 'POST' or request.POST.get('throws') == None:
             raise Exception('bad_request')
 
-        throws = request.POST.get('throws')
+        throws = json.loads(request.POST.get('throws'))
         user = request.user
         seat = models.Seat.objects.get(
             done=False, player=request.user)
         game = seat.game
-        top_card = list(models.Throw.objects.filter(move__game=game).order_by(
-            '-pk')[0].values_list('card', flat=True))  # get the top card
+        top_card = models.Throw.objects.filter(
+            move__game=game).last()  # get the top card
         # we recognize the current battle state based on the Game.special_state, so we don't need to have a complete history of throws
 
-        if len(top_card) == 0:
+        if top_card == None:
             # if it's the first move of the game, get the top card from the Game model
             top_card = game.top_card
 
@@ -150,8 +151,9 @@ def move(request):
 
         # check if the submitted cards are in the user's hand
         for t in throws:
-            card_count = models.Card.filter(player=user, card=t).count
-            if count == 0:
+            card_count = models.Card.objects.filter(
+                player=user, card=t).count()
+            if card_count == 0:
                 response['return'] = 'bad_throw'
                 return JsonResponse(response)
 
@@ -162,7 +164,7 @@ def move(request):
         # since this card skips all checks we'll make a variable for it to avoid complex if statements
         queen_of_spades = False
         for t in throws:
-            t_suit = ceil(t*13)
+            t_suit = ceil(t/13)
             t_value = t - (t_suit-1)*13
             if t_value != sample_value:
                 raise Exception('bad_throw')
@@ -212,30 +214,34 @@ def move(request):
             else:
                 raise Exception('bad_throw')
 
-            # create the move object, delete cards from the player's hand, create the throw model
-            move = models.Move(player=user, game=game)
-            move.save()
-            for c in throws:  # c representing the value of a card
-                card = models.Card.get(game=game, player=user, card=c)
-                card.delete()
-                throw = models.Throw(move=move, card=c)
-                throw.save()
-            # if the user's hand is now empty, change the Seat.done to True
-            cards_left = models.Card.filter(game=game, player=user).count()
-            if cards_left == 0:
-                seat.done = True
-                seat.save()
-                # now check if there's more than 1 player left, if not end the game
-                seat_count = models.Seat.filter(game=game, done=False).count()
-                if seat_count <= 0:
-                    game.is_finished = True
-                    game.save()
+        # create the move object, delete cards from the player's hand, create the throw model
+        move = models.Move(player=user, game=game)
+        move.save()
+        for c in throws:  # c representing the value of a card
+            card = models.Card.objects.get(game=game, player=user, card=c)
+            card.delete()
+            throw = models.Throw(move=move, card=c)
+            throw.save()
+        # if the user's hand is now empty, change the Seat.done to True
+        cards_left = models.Card.objects.filter(
+            game=game, player=user).count()
+        if cards_left == 0:
+            seat.done = True
+            seat.save()
+            # now check if there's more than 1 player left, if not end the game
+            seat_count = models.Seat.objects.filter(
+                game=game, done=False).count()
+            if seat_count <= 0:
+                game.is_finished = True
+                game.save()
 
-            # return 'ok'
-            return JsonResponse(response)
+        # return 'ok'
+        print('mission accomplished')
+        return JsonResponse(response)
 
     except Exception as e:
         response['return'] = e.args
+        print(e.args)
         return JsonResponse(response)
 
 
@@ -263,8 +269,7 @@ def state(request):
     seat = models.Seat.objects.get(
         done=False, player=request.user)
     game = seat.game
-    throws = list(models.Throw.objects.filter(move__game=game).order_by(
-        '-pk')[10:].values_list('card', flat=True))
+    last_throw = models.Throw.objects.filter(move__game=game).last()
     move_count = models.Move.objects.filter(game=game).count()
 
     response = {}
@@ -272,12 +277,12 @@ def state(request):
     response['hands'] = []
     response['full'] = game.full
     response['position'] = seat.seat_number
-    response['top_cards'] = throws
+    response['top_cards'] = last_throw.card
     response['move_count'] = move_count
 
-    if len(throws) > 0:
-        last_move = models.Move.objects.filter(game=game).latest()
-        last_player = move.player
+    if last_throw != None:
+        last_move = models.Move.objects.filter(game=game).last()
+        last_player = last_move.player
         last_seat = models.Seat.objects.get(game=game, player=last_player)
         seats = list(models.Seat.objects.filter(
             game=game).order_by('-pk'))
