@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from macau_game import models, forms
+from macau_game import models, forms, game_funcs
 from random import randrange
 from macau_game import decorators
-from random import choices, choice
+from random import sample, choices, choice
 from math import ceil
 import json
 
@@ -45,7 +45,7 @@ def start_game(request):  # TODO: error messages (after error view is finished)
             deck.remove(13*i+b)
 
     game = models.Game(player_count=player_count, is_finished=False,
-                       starting_player=randrange(1, player_count+1), top_card=choice(deck), full=False)
+                       starting_player=randrange(0, player_count), top_card=choice(deck), full=False)
     game.save()
     seat = models.Seat(player=request.user, game=game,
                        seat_number=0, done=False)
@@ -74,10 +74,13 @@ def join_game(request):
         game.save()
         # 'deal out' the cards to players:
         deck = list(range(1, 53))
+        print(game.top_card)
         deck.remove(game.top_card)
         seats = list(models.Seat.objects.filter(game=game))
         for s in seats:
-            hand = choices(deck, k=5)
+            hand = sample(deck, k=5)
+            print("hand:" + str(hand))
+            print("deck:" + str(deck))
             for card in hand:
                 deck.remove(card)
                 c = models.Card(game=game, card=card, player=s.player)
@@ -121,6 +124,10 @@ def move(request):
             # if it's the first move of the game, get the top card from the Game model
             top_card = game.top_card
 
+        # check if it's this user's turn
+        print(game_funcs.active_seat(game).seat_number)
+        if game_funcs.active_seat(game) != seat:
+            raise Exception("wrong_turn")
         if throws[0] == 'draw':  # check if the user is drawing cards instead of playing them
 
             # TODO: Prepare for a case in which all the cards had been drawn and there's no more cards in the deck
@@ -137,7 +144,7 @@ def move(request):
                 deck.remove(c)
             deck.remove(game.top_card)
 
-            drawn_cards = choices(deck, k=to_draw)
+            drawn_cards = sample(deck, k=to_draw)
             for card in drawn_cards:
                 c = models.Card(game=game, card=card, player=user)
                 c.save()
@@ -154,8 +161,7 @@ def move(request):
             card_count = models.Card.objects.filter(
                 player=user, card=t).count()
             if card_count == 0:
-                response['return'] = 'bad_throw'
-                return JsonResponse(response)
+                raise Exception('bad_throw')
 
         # check if all of the cards in the throw have the same value, otherwise throw an Exception
         sample = throws[0]
@@ -170,25 +176,32 @@ def move(request):
                 raise Exception('bad_throw')
             if t_suit == 2 and t_value == 12:
                 queen_of_spades = True
-        # check if there's a battle and if so if the cards addresses that TODO
+        # check if there's a battle and if so if the cards addresses that
+        # TODO: figure out the ruleset we want to go by and implement that one (right now it's any-on-any battle, there's also the hungarian variation)
         if game.special_state > 0:
             battle_values = [2, 3, 13]
             # also check for the queen of spades
             if sample_value not in battle_values or sample_value != 12 and sample_suit != 2:
                 raise Exception('bad_throw')
 
+        # last card thrown, aka the top card of the game
+        top_card = game_funcs.get_top_card(game)
+        top_card_suit = ceil(top_card/13)
+        top_card_value = top_card - (top_card_suit-1) * 13
+        print(top_card)
+        # check if the throws[0] matches the top card of the game, or if it's not a queen of spades (goes on top of anything)
+        if (sample_value == top_card_value or sample_suit == top_card_suit) is False and queen_of_spades is False:
+            print('xd')
+            raise Exception('bad_throw')
+
         # Next two ifs check if there is a pending demand and if the bottom card of the throw addresses that
         # bottom card meaning throws[0] (represented by sample_value and sample_suit),
-        # as it is the first card to be thrown and ends up on top of the card that's currently on top
+        # as it is the first card to be thrown and ends up on top of the card that's currently on top of the pile
 
         # check for a demand indicating the value of a card and if response matches the demand,
         # eventually if the demand can still be change (if a jack is on top and the user has thrown a jack)
         if game.special_state < 0 and game.special_state >= -13 and queen_of_spades is False:
             demand_value = game.special_state*(-1)
-            # last card thrown, aka the top card of the game
-            top_card = game.top_card
-            top_card_suit = ceil(top_card/13)
-            top_card_value = top_card - (top_card_suit-1) * 13
 
             if sample_value == demand_value:
                 pass
@@ -202,10 +215,6 @@ def move(request):
         if game.special_state < -13 and queen_of_spades is False:
             # adjusting for the value scheme for the demand outlined in models.Game
             demand_suit = game.special_state * (-1) / 10 - 2
-
-            top_card = game.top_card
-            top_card_suit = ceil(top_card/13)
-            top_card_value = top_card - (top_card_suit-1) * 13
 
             if demand_suit == sample_suit:
                 pass
@@ -236,7 +245,6 @@ def move(request):
                 game.save()
 
         # return 'ok'
-        print('mission accomplished')
         return JsonResponse(response)
 
     except Exception as e:
@@ -277,34 +285,12 @@ def state(request):
     response['hands'] = []
     response['full'] = game.full
     response['position'] = seat.seat_number
-    response['top_cards'] = last_throw.card
+    response['top_cards'] = ''
     response['move_count'] = move_count
-
+# TODO: refactor the next if statement + the last_throw above using game_funcs, they're doing basically the same things
     if last_throw != None:
-        last_move = models.Move.objects.filter(game=game).last()
-        last_player = last_move.player
-        last_seat = models.Seat.objects.get(game=game, player=last_player)
-        seats = list(models.Seat.objects.filter(
-            game=game).order_by('-pk'))
-        if len(seats) > 1:
-            if last_seat.seat_number+1 == game.player_count:  # check if we need to "go around the table" again
-                response['active_player'] = seats_active[0].seat_number
-            # get the next active (yet to have finished the game) player seat number
-            else:
-                last_seat_index = seats.index(last_seat)
-                # going from the position of last active player we check for the next active one.
-                for i in range(1, len(seats)):
-                    # upon reaching the end of seats arr, we just grab the first player at the table that is still active
-                    if last_seat_index + i < len(seats):
-                        if seats[last_seat_index+1].done is False:
-                            response['active_player'] = seats[last_seat_index+1].seat_number
-                            break
-                    else:
-                        for s in seats:
-                            if s.done is False:
-                                response['active_player'] = s.seat_number
-                                break
-                        break
+        response['active_player'] = game_funcs.active_seat(game).seat_number
+        response['top_cards'] = last_throw.card
     else:
         response['active_player'] = game.starting_player
         response['top_cards'] = game.top_card

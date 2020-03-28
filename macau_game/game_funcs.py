@@ -20,3 +20,11 @@ def active_seat(game):
                 return s
             if s == last_seat:
                 return_next = True
+
+
+def get_top_card(game):
+    last_throw = models.Throw.objects.filter(move__game=game).last()
+    if last_throw != None:
+        return last_throw.card
+    else:
+        return game.top_card
