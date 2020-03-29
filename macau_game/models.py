@@ -12,8 +12,7 @@ class Game(models.Model):
         special_state - 0 means 'normal', positive integer signifies battle (and the amount of cards to be drawn),
         negative integer down to -13 is a demand made with a jack, a negative integer with a step of -10 between -20 and -50 is 
         a color demand in CHSD(clubs=-20, same for hearts, spaded and diamonds) order,
-        a negative integer between -14 and -17 is a forced pause (by your opponent throwing a 4), -14 being one turn and -17
-        being 4 turns
+
     '''
     player_count = models.PositiveSmallIntegerField()
     full = models.BooleanField()
