@@ -24,7 +24,7 @@ def in_game(function):
         last_seat = Seat.objects.filter(
             done=False, player=request.user).count()
         if last_seat == 0:
-            return redirect('game')
+            return redirect('index')
         else:
             return function(request, *args, **kwargs)
     wrap.__doc__ = function.__doc__
