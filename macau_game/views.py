@@ -74,13 +74,10 @@ def join_game(request):
         game.save()
         # 'deal out' the cards to players:
         deck = list(range(1, 53))
-        print(game.top_card)
         deck.remove(game.top_card)
         seats = list(models.Seat.objects.filter(game=game))
         for s in seats:
             hand = sample(deck, k=5)
-            print("hand:" + str(hand))
-            print("deck:" + str(deck))
             for card in hand:
                 deck.remove(card)
                 c = models.Card(game=game, card=card, player=s.player)
@@ -102,57 +99,37 @@ def move(request):
     # also end the game if the move is the last one (defined by there being one player left in the game)
     # TODO: create responses other than 'ok' and 'bad_throw'
     # TODO: implement 'special' mechanics
+    # TODO: move more functionality to game_funcs to improve readability
     response = {}
     response['return'] = 'ok'
     try:
-
+        print(request.user.username)
         # check request method and parameters
         if request.method != 'POST' or request.POST.get('throws') == None:
             raise Exception('bad_request')
 
-        throws = json.loads(request.POST.get('throws'))
         user = request.user
         seat = models.Seat.objects.get(
             done=False, player=request.user)
         game = seat.game
         top_card = models.Throw.objects.filter(
             move__game=game).last()  # get the top card
-        # we recognize the current battle state based on the Game.special_state, so we don't need to have a complete history of throws
-
-        if top_card == None:
-            # if it's the first move of the game, get the top card from the Game model
-            top_card = game.top_card
-
         # check if it's this user's turn
         if game_funcs.active_seat(game) != seat:
             raise Exception("wrong_turn")
-        if throws[0] == 'draw':  # check if the user is drawing cards instead of playing them
 
-            # TODO: Prepare for a case in which all the cards had been drawn and there's no more cards in the deck
-            # (maybe a 'debt' system of drawing cards as soon as they become available?)
-            to_draw = 1
-            if game.special_state > 0:
-                to_draw = game.special_state
-            player_cards = models.Card.objects.filter(
-                game=game).values_list('card', flat=True)  # card values to be excluded from drawing, because they belong to players
-
-            # removing cards already in play
-            deck = list(range(1, 53))
-            for c in player_cards:
-                deck.remove(c)
-            deck.remove(game.top_card)
-
-            drawn_cards = sample(deck, k=to_draw)
-            for card in drawn_cards:
-                c = models.Card(game=game, card=card, player=user)
-                c.save()
-
-            # create a move, don't tie any cards to it (since we didn't place any)
-            move = models.Move(player=user, game=game)
-            move.save()
-
-            response['return'] = 'ok'
+        # check if the user is drawing cards instead of playing them
+        if request.POST.get('throws') == 'draw':
+            print('loo')
+            game_funcs.draw(game, user)
             return JsonResponse(response)
+
+        throws = json.loads(request.POST.get('throws'))
+
+        # we recognize the current battle state based on the Game.special_state, so we don't need to have a complete history of throws
+        if top_card == None:
+            # if it's the first move of the game, get the top card from the Game model
+            top_card = game.top_card
 
         # check if the submitted cards are in the user's hand
         for t in throws:
@@ -189,10 +166,8 @@ def move(request):
         top_card = game_funcs.get_top_card(game)
         top_card_suit = ceil(top_card/13)
         top_card_value = top_card - (top_card_suit-1) * 13
-        print(top_card)
         # check if the throws[0] matches the top card of the game, or if it's not a queen of spades (goes on top of anything)
         if (sample_value == top_card_value or sample_suit == top_card_suit) is False and queen_of_spades is False:
-            print('xd')
             raise Exception('bad_throw')
 
         # Next two ifs check if there is a pending demand and if the bottom card of the throw addresses that

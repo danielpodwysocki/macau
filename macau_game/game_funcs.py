@@ -1,4 +1,5 @@
 from macau_game import models
+from random import sample
 
 
 def active_seat(game):
@@ -28,3 +29,29 @@ def get_top_card(game):
         return last_throw.card
     else:
         return game.top_card
+
+
+def draw(game, user):
+
+    # TODO: Prepare for a case in which all the cards had been drawn and there's no more cards in the deck
+    # (maybe a 'debt' system of drawing cards as soon as they become available?)
+    to_draw = 1
+    if game.special_state > 0:
+        to_draw = game.special_state
+    player_cards = models.Card.objects.filter(
+        game=game).values_list('card', flat=True)  # card values to be excluded from drawing, because they belong to players
+
+    # removing cards already in play
+    deck = list(range(1, 53))
+    for c in player_cards:
+        deck.remove(c)
+    deck.remove(game.top_card)
+
+    drawn_cards = sample(deck, k=to_draw)
+    for card in drawn_cards:
+        c = models.Card(game=game, card=card, player=user)
+        c.save()
+
+    # create a move, don't tie any cards to it (since we didn't place any)
+    move = models.Move(player=user, game=game)
+    move.save()

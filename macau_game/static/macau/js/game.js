@@ -29,7 +29,7 @@ function submit_move(draw) {
     req.setRequestHeader('X-CSRFToken', csrftoken)
 
     if (draw) {
-        req.send("throw=draw")
+        req.send("throws=draw")
     }
     else {
         req.send("throws=" + JSON.stringify(chosen_cards));
