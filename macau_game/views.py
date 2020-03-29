@@ -102,7 +102,6 @@ def move(request):
     # also end the game if the move is the last one (defined by there being one player left in the game)
     # TODO: create responses other than 'ok' and 'bad_throw'
     # TODO: implement 'special' mechanics
-    # TODO: check if it's the user's turn
     response = {}
     response['return'] = 'ok'
     try:
@@ -125,7 +124,6 @@ def move(request):
             top_card = game.top_card
 
         # check if it's this user's turn
-        print(game_funcs.active_seat(game).seat_number)
         if game_funcs.active_seat(game) != seat:
             raise Exception("wrong_turn")
         if throws[0] == 'draw':  # check if the user is drawing cards instead of playing them
@@ -133,8 +131,8 @@ def move(request):
             # TODO: Prepare for a case in which all the cards had been drawn and there's no more cards in the deck
             # (maybe a 'debt' system of drawing cards as soon as they become available?)
             to_draw = 1
-            if game.special_state < 0 and game.special_state >= -13:
-                to_draw = abs(game.special_state)
+            if game.special_state > 0:
+                to_draw = game.special_state
             player_cards = models.Card.objects.filter(
                 game=game).values_list('card', flat=True)  # card values to be excluded from drawing, because they belong to players
 
@@ -169,19 +167,22 @@ def move(request):
         sample_value = sample - (sample_suit-1) * 13
         # since this card skips all checks we'll make a variable for it to avoid complex if statements
         queen_of_spades = False
+        if sample_suit == 2 and sample_value == 12:
+            queen_of_spades = True
         for t in throws:
             t_suit = ceil(t/13)
             t_value = t - (t_suit-1)*13
             if t_value != sample_value:
                 raise Exception('bad_throw')
-            if t_suit == 2 and t_value == 12:
-                queen_of_spades = True
+
         # check if there's a battle and if so if the cards addresses that
         # TODO: figure out the ruleset we want to go by and implement that one (right now it's any-on-any battle, there's also the hungarian variation)
+        # also used later on for throwing battle cards
+        battle_values = [2, 3, 13]
+
         if game.special_state > 0:
-            battle_values = [2, 3, 13]
             # also check for the queen of spades
-            if sample_value not in battle_values or sample_value != 12 and sample_suit != 2:
+            if sample_value not in battle_values and queen_of_spades is False:
                 raise Exception('bad_throw')
 
         # last card thrown, aka the top card of the game
@@ -222,6 +223,34 @@ def move(request):
                 pass
             else:
                 raise Exception('bad_throw')
+
+        if sample_value in battle_values:
+            for t in throws:
+                game.special_state += sample_value
+                game.save()
+
+        if sample_value == 1:
+            if request.POST.get('demand') is None:
+                pass
+            else:
+                demand = int(request.POST.get('demand'))
+                demands = [1, 2, 3, 4]
+                if demand not in demands:
+                    raise Exception("bad_demand")
+                game.special_state = (-demand-1)*10
+                game.save()
+
+        if sample_value == 11:
+            if request.POST.get('demand') is None:
+                pass
+            else:
+                demand = int(request.POST.get('demand'))
+                # TODO: decide whether or not to allow queen demands
+                demands = [5, 6, 7, 8, 9, 10, 12]
+                if demand not in demands:
+                    raise Exception("bad_demand")
+                game.special_state = -demand
+                game.save()
 
         # create the move object, delete cards from the player's hand, create the throw model
         move = models.Move(player=user, game=game)
