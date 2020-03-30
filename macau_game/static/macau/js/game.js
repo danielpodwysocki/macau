@@ -65,14 +65,14 @@ function update_info(state) {
     let game_top_cards = document.getElementById("game_top_cards");
     let game_special_state = document.getElementById("game_special_state");
 
-    game_top_cards.innerHTML = card_to_name(state.top_cards);
+    game_top_cards.innerHTML = "Top card: " + card_to_name(state.top_cards);
 
     let special = state.special;
     let color_demands = [-20, -30, -40, -50];
     if (special == 0) game_special_state.innerHTML = "No battle/demand"
     else if (special > 0) game_special_state.innerHTML = "Battle: " + special.toString() + " to be drawn";
     else if (special < 0 && special > -14) game_special_state.innerHTML = "Demand: " + special.toString();
-    else if (true) {
+    else {
         let suits = ['&#9827;', '&#9829;', '&#9824;', '&#9830;']; //unicode for clubs, hearts, spades and diamonds (CHaSeD order)
         //-2 to adjust both for indexes and the -20,-30,-40,-50 scheme
         console.log(special);
