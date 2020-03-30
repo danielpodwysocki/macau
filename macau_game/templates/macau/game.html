@@ -3,11 +3,13 @@
 {% block content %}
     <script src="{% static 'macau/js/game.js' %}"></script>
     <div id="game_resign"><button>Resign</button></div>
-    <div id="game_full">-</div>
+    <!--div id="game_full">-</div-->
+    <div id="game_special_state"></div>
     <div id="game_top_cards">-</div>
     <div id="game_submit_move"><button onclick="submit_move(false)">Submit move</button></div>
-    <div id="game_placeholder"></div>
+    <div id="game_draw"><button onclick="submit_move(true)">Draw</button></div>
     <div id="grid-game_players"></div>
     <div id="game_user_hand"></div>
+    <div id="game_demands"></div>
 
 {% endblock content %}
