@@ -55,3 +55,6 @@ def draw(game, user):
     # create a move, don't tie any cards to it (since we didn't place any)
     move = models.Move(player=user, game=game)
     move.save()
+    # reset any battle or demand states
+    game.special_state = 0
+    game.save()

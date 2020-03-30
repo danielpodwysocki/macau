@@ -97,13 +97,15 @@ def game(request):  # TODO the game view
 def move(request):
     # we create a new move model after each move, because we want a to have a history of all moves, kind of like on lichess.org
     # also end the game if the move is the last one (defined by there being one player left in the game)
+    # takes POST parameters:
+    #     demand - indicates demanded value, for aces it's 1 to 4 (Clubs-Hearts-Spades-Diamonds card color order),
+    #     for jacks it's the demanded card's value
     # TODO: create responses other than 'ok' and 'bad_throw'
     # TODO: implement 'special' mechanics
     # TODO: move more functionality to game_funcs to improve readability
     response = {}
     response['return'] = 'ok'
     try:
-        print(request.user.username)
         # check request method and parameters
         if request.method != 'POST' or request.POST.get('throws') == None:
             raise Exception('bad_request')
@@ -120,7 +122,6 @@ def move(request):
 
         # check if the user is drawing cards instead of playing them
         if request.POST.get('throws') == 'draw':
-            print('loo')
             game_funcs.draw(game, user)
             return JsonResponse(response)
 
@@ -168,7 +169,9 @@ def move(request):
         top_card_value = top_card - (top_card_suit-1) * 13
         # check if the throws[0] matches the top card of the game, or if it's not a queen of spades (goes on top of anything)
         if (sample_value == top_card_value or sample_suit == top_card_suit) is False and queen_of_spades is False:
-            raise Exception('bad_throw')
+            # check if a color is being demanded (it overrides the rule of throwing same suit or value on same suit/value)
+            if game.special_state not in [-20, -30, -40, -50]:
+                raise Exception('bad_throw')
 
         # Next two ifs check if there is a pending demand and if the bottom card of the throw addresses that
         # bottom card meaning throws[0] (represented by sample_value and sample_suit),
@@ -189,20 +192,28 @@ def move(request):
         # check for a demand indicating the suit of a thrown card and if the response matches the demand or
         # can be changed by throwing an ace (while an ace is still on top)
         if game.special_state < -13 and queen_of_spades is False:
-            # adjusting for the value scheme for the demand outlined in models.Game
-            demand_suit = game.special_state * (-1) / 10 - 2
+            # -1 is adjusting for the value scheme for the demand outlined in models.Game
+            demand_suit = -game.special_state / 10 - 1
 
             if demand_suit == sample_suit:
                 pass
+                game.special_state = 0
+                game.save()
             elif top_card_value == 1 == sample_value:
+                game.special_state = 0
+                game.save()
                 pass
             else:
                 raise Exception('bad_throw')
 
         if sample_value in battle_values:
             for t in throws:
-                game.special_state += sample_value
-                game.save()
+                if sample_value != 13:
+                    game.special_state += sample_value
+                    game.save()
+                else:
+                    game.special_state += 5
+                    game.save()
 
         if sample_value == 1:
             if request.POST.get('demand') is None:
@@ -275,6 +286,7 @@ def state(request):
         in the below comments the "user" refers to the one that made the request for the json,
         players are the rest of the people playing
         move_count - it lets us know if the game has advanced
+        special - game.special_state
 
     '''
     user = request.user
@@ -291,6 +303,7 @@ def state(request):
     response['position'] = seat.seat_number
     response['top_cards'] = ''
     response['move_count'] = move_count
+    response['special'] = game.special_state
 # TODO: refactor the next if statement + the last_throw above using game_funcs, they're doing basically the same things
     if last_throw != None:
         response['active_player'] = game_funcs.active_seat(game).seat_number
