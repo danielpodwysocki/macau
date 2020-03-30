@@ -1,6 +1,7 @@
 var data;
 var players_created = false;
 var chosen_cards = [];
+demand = null;
 
 function getCookie(name) { //For the CSRF token
     var cookieValue = null;
@@ -32,15 +33,14 @@ function submit_move(draw) {
         req.send("throws=draw")
     }
     else {
-        req.send("throws=" + JSON.stringify(chosen_cards));
-        console.log('xd');
+        req.send("throws=" + JSON.stringify(chosen_cards) + ";demand=" + JSON.stringify(demand));
     }
 }
 
 function card_to_name(card) {
     //returns a string with a human-friendly represantation of the card
-    suits = ['&#9827;', '&#9829;', '&#9824;', '&#9830;']; //unicode for clubs, hearts, spades and diamonds (CHaSeD order)
-    values = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    let suits = ['&#9827;', '&#9829;', '&#9824;', '&#9830;']; //unicode for clubs, hearts, spades and diamonds (CHaSeD order)
+    let values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
     //card numbers go in CHSD order, so 1 to 13 are ace to king of clubs, 14 is the ace of hearts and so on 
     suit = Math.ceil(card / 13) - 1; //-1 for the arr indexes and for the suit*13 to work
@@ -62,13 +62,24 @@ function create_players(state) {
 }
 
 function update_info(state) {
-    let game_full = document.getElementById("game_full");
     let game_top_cards = document.getElementById("game_top_cards");
-
-    if (state.full) game_full.innerHTML = "Full";
-    else game_full.innerHTML = "Not enough players";
+    let game_special_state = document.getElementById("game_special_state");
 
     game_top_cards.innerHTML = card_to_name(state.top_cards);
+
+    let special = state.special;
+    let color_demands = [-20, -30, -40, -50];
+    if (special == 0) game_special_state.innerHTML = "No battle/demand"
+    else if (special > 0) game_special_state.innerHTML = "Battle: " + special.toString() + " to be drawn";
+    else if (special < 0 && special > -14) game_special_state.innerHTML = "Demand: " + special.toString();
+    else if (true) {
+        let suits = ['&#9827;', '&#9829;', '&#9824;', '&#9830;']; //unicode for clubs, hearts, spades and diamonds (CHaSeD order)
+        //-2 to adjust both for indexes and the -20,-30,-40,-50 scheme
+        console.log(special);
+        console.log((-special) / 10 - 2)
+
+        game_special_state.innerHTML = "Demand: " + suits[(-special) / 10 - 2];
+    }
 
 }
 
@@ -100,8 +111,64 @@ function update_active_player(state) {
 
 }
 
+function update_demands() {
+    function print_demands(type) {
+
+        let demands_div = document.getElementById("game_demands");
+        demands_div.innerHTML = "";
+        let demands;
+        let human_values;
+        if (type == 'aces') {
+            demands = [1, 2, 3, 4];
+            human_values = ['&#9827;', '&#9829;', '&#9824;', '&#9830;'];
+
+        }
+        else if (type == "jacks") { //for jacks
+            //TODO: decide wheter or not queens can be demanded (also in views.move)
+            demands = [5, 6, 7, 8, 9, 10, 12];
+            human_values = ['5', '6', '7', '8', '9', '10', 'Q'];
+        }
+        console.log(human_values.length)
+        for (let i = 0; i < human_values.length; i++) {
+            demands_div.innerHTML += "<div class='demand'>" + human_values[i] + "</div>&#13";
+        }
+        let divs = document.getElementsByClassName('demand');
+        for (let i = 0; i < divs.length; i++) {
+            divs[i].addEventListener("click", function (event) {
+                let div = event.target;
+                demand = null;
+                if (div.matches(".demand-toggled")) {
+                    div.classList.remove("demand-toggled");
+                }
+                else {
+                    for (let j = 0; j < divs.length; j++) divs[j].classList.remove("demand-toggled");
+                    div.classList.add("demand-toggled");
+                    demand = demands[i];
+                }
+            });
+        }
+    }
+    jacks = [11, 24, 37, 50];
+    aces = [1, 14, 27, 40];
+    for (let i = 0; i < 4; i++) {
+        if (chosen_cards.some(card => card == jacks[i])) {
+            print_demands("jacks")
+            break;
+        }
+        else if (chosen_cards.some(card => card == aces[i])) {
+
+            print_demands("aces")
+            break;
+        }
+        if (i == 3) {
+            let demands_div = document.getElementById("game_demands");
+            demands_div.innerHTML = "";
+        }
+    }
+}
 
 function update_cards(state) { //TODO: visually represent cards/their amount of each player 
+    //TODO: add some checks so only same-value cards can be added to the chosen_cards
     chosen_cards = [];
     console.log(state)
     let players = document.getElementsByClassName("player-cards");
@@ -135,6 +202,7 @@ function update_cards(state) { //TODO: visually represent cards/their amount of 
             card.classList.add("card-toggled");
             chosen_cards.push(state.hands[state.position][i]);
         }
+        update_demands();
     });
 }
 
@@ -142,7 +210,6 @@ async function update_json() {
     fetch("state")
         .then(resp => resp.json())
         .then(resp => {
-            //console.log(chosen_cards)
             if (data == undefined || data.move_count != resp.move_count) {
                 data = resp;
                 if (!players_created) {
@@ -152,6 +219,7 @@ async function update_json() {
                 update_cards(data);
                 update_active_player(data);
                 update_info(data);
+
             }
 
         });

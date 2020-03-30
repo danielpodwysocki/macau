@@ -17,7 +17,7 @@ form{
     grid-column: 3;
 }
 
-.user-card{
+.user-card,.demand{
     float:left;
 }
 
@@ -33,7 +33,7 @@ form{
     background: yellow;
 }
 
-.card-toggled{
+.card-toggled, .demand-toggled{
     background:red;
 }
 
