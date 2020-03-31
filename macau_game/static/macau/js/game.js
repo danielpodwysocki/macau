@@ -56,7 +56,7 @@ function create_players(state) {
     let grid = document.getElementById('grid-game_players');
 
     for (let i = 0; i < state.player_count - 1; i++) {
-        grid.innerHTML += "<div class='player'>" + "player " + (i + 1).toString() + "<div class='player-cards'></div></div>&#13";
+        grid.innerHTML += "<div class='player'>" + "<div class='player_title'>player " + (i + 1).toString() + "</div><div class='player-cards playingCards'></div></div>&#13";
     }
 
 }
@@ -86,7 +86,7 @@ function update_info(state) {
 function update_active_player(state) {
     //add the "game-active" class to a player/user div and removes it from everybody else
     let user = document.getElementById("game_user_hand");
-    let players = document.getElementsByClassName("player");
+    let players = document.getElementsByClassName("player_title");
 
     user.classList.remove("game-active");
 
@@ -97,14 +97,16 @@ function update_active_player(state) {
     }
     else {
         let player = state.position + 1;
+        if (player >= state.player_count) player = 0;
+        console.log(players.length)
         for (let i = 0; i < players.length; i++) {
+            console.log('dddd')
+
             if (state.active_player + i == player) {
                 players[i].classList.add("game-active");
                 break;
             }
-            else if (state.active_player + i >= state.player_count) {
-                player = 0;
-            }
+
         }
 
     }
@@ -186,7 +188,7 @@ function update_cards(state) { //TODO: visually represent cards/their amount of 
         else {
 
             players[current_seat].innerHTML = "";
-            for (let j = 0; j < state.hands[i]; j++) players[current_seat].innerHTML += "c"; //TODO: change to a visual repres. of a card
+            for (let j = 0; j < state.hands[i]; j++) players[current_seat].innerHTML += "<div class='card back player-card'>*</div>"; //TODO: change to a visual repres. of a card
             current_seat++;
         }
     }

@@ -29,9 +29,22 @@ form{
     background: yellow;
 }
 
-.game-active #game-user-hand{
-    background: yellow;
+.player-card{ /*overwriting the original cards.css*/
+    width: 1.65vw !important;
+    height: 2.3vw !important;
+    margin-left: -2vw !important; 
 }
+
+
+.player-card:first-child {
+    margin-left:0.1vw!important; 
+}
+
+.game-active{
+    background: orange;
+}
+
+.game_user_hand
 
 .card-toggled, .demand-toggled{
     background:red;
