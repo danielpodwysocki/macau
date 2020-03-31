@@ -13,6 +13,7 @@ import json
 
 
 @login_required
+@decorators.not_in_game
 def index(request):  # TODO: this view lets you create or join a game
     u = request.user  # just for testing untill i make the index page
 
@@ -304,12 +305,12 @@ def state(request):
     response['top_cards'] = ''
     response['move_count'] = move_count
     response['special'] = game.special_state
+    response['active_player'] = game_funcs.active_seat(game).seat_number
+
 # TODO: refactor the next if statement + the last_throw above using game_funcs, they're doing basically the same things
     if last_throw != None:
-        response['active_player'] = game_funcs.active_seat(game).seat_number
         response['top_cards'] = last_throw.card
     else:
-        response['active_player'] = game.starting_player
         response['top_cards'] = game.top_card
 
     if game.full:
