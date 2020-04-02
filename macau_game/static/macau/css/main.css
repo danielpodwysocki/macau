@@ -25,8 +25,13 @@ form{
     background:red;
 }
 
-.game-active .player-cards{
-    background: yellow;
+.player, #game_user_hand{
+    border: cadetblue 7px ridge;
+}
+
+.player_title{
+    color: rgb(76, 106, 173);
+    padding:0.25vw;
 }
 
 .player-card{ /*overwriting the original cards.css*/
@@ -40,12 +45,28 @@ form{
     margin-left:0.1vw!important; 
 }
 
+.game-dashboard{
+    background: aqua;
+    padding-top:1vw;
+    padding-bottom: 1vw;
+    text-align: center;
+}
+
+.game-dashboard button{
+    width:10vw;
+}
 .game-active{
     background: orange;
 }
 
-.game_user_hand
+#game_user_hand{
+    text-align: center;    
+}
 
+#game_user_cards{
+    display: inline-block;
+    margin-top: 1vw;
+}
 .card-toggled, .demand-toggled{
     background:red;
 }

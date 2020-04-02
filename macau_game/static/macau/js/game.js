@@ -2,7 +2,7 @@ var data;
 var players_created = false;
 var chosen_cards = [];
 demand = null;
-
+//TODO: correct the naming of css classes
 function getCookie(name) { //For the CSRF token
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -86,7 +86,7 @@ function update_info(state) {
 function update_active_player(state) {
     //add the "game-active" class to a player/user div and removes it from everybody else
     let user = document.getElementById("game_user_hand");
-    let players = document.getElementsByClassName("player_title");
+    let players = document.getElementsByClassName("player");
 
     user.classList.remove("game-active");
 
@@ -174,7 +174,7 @@ function update_cards(state) { //TODO: visually represent cards/their amount of 
     chosen_cards = [];
     console.log(state)
     let players = document.getElementsByClassName("player-cards");
-    let user = document.getElementById("game_user_hand");
+    let user = document.getElementById("game_user_cards");
     let current_seat = 0; //the seat that we're updating the cards for
 
     for (let i = 0; i < state.player_count; i++) {

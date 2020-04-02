@@ -2,14 +2,16 @@
 {% load static %}
 {% block content %}
     <script src="{% static 'macau/js/game.js' %}"></script>
-    <div id="game_resign"><button>Resign</button></div>
+    <div id="game_resign" class="game-dashboard"><button>Resign</button></div>
     <!--div id="game_full">-</div-->
-    <div id="game_special_state"></div>
-    <div id="game_top_cards">-</div>
-    <div id="game_submit_move"><button onclick="submit_move(false)">Submit move</button></div>
-    <div id="game_draw"><button onclick="submit_move(true)">Draw</button></div>
+    <div id="game_special_state" class="game-dashboard"></div>
+    <div id="game_top_cards" class="game-dashboard">-</div>
+    <div id="game_submit_move" class="game-dashboard"><button onclick="submit_move(false)">Submit move</button></div>
+    <div id="game_draw" class="game-dashboard"><button onclick="submit_move(true)">Draw</button></div>
     <div id="grid-game_players"></div>
-    <div id="game_user_hand"></div>
+    <div id="game_user_hand">
+        <div id="game_user_cards"></div>
+    </div>
     <div id="game_demands"></div>
 
 {% endblock content %}
