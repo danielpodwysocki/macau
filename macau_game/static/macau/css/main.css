@@ -1,11 +1,11 @@
 body{
-    background: white;
+    background:rgb(245, 203, 97);
 }
 
 header{
-    background: orange;
+    background:rgb(255, 211, 160);
     width: 100vw;
-    height:5vw;
+    height:2.5vw;
 }
 
 #grid-main{
@@ -30,8 +30,9 @@ form{
 }
 
 .player_title{
-    color: rgb(76, 106, 173);
+    color: rgb(223, 96, 255);
     padding:0.25vw;
+    text-align: center;
 }
 
 .player-card{ /*overwriting the original cards.css*/
@@ -42,21 +43,31 @@ form{
 
 
 .player-card:first-child {
-    margin-left:0.1vw!important; 
+    margin-left:0.3vw!important; 
 }
 
 .game-dashboard{
-    background: aqua;
+    background: rgb(218, 141, 0);
     padding-top:1vw;
     padding-bottom: 1vw;
     text-align: center;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-size: 1vw;
+
+}
+
+.game-dashboard button{
+    border-radius: 50%;
+    font-size: 1vw;
+    background: rgb(245, 211, 97);
+    border: rgb(245, 203, 97) 0.01vw solid;
 }
 
 .game-dashboard button{
     width:10vw;
 }
 .game-active{
-    background: orange;
+    background: rgb(55, 100, 100);
 }
 
 #game_user_hand{
@@ -65,7 +76,7 @@ form{
 
 #game_user_cards{
     display: inline-block;
-    margin-top: 1vw;
+    margin-top: 1.75vw;
 }
 .card-toggled, .demand-toggled{
     background:red;
