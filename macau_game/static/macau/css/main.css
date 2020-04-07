@@ -61,6 +61,7 @@ form{
     font-size: 1vw;
     background: rgb(245, 211, 97);
     border: rgb(245, 203, 97) 0.01vw solid;
+    height:2.5vw;
 }
 
 .game-dashboard button{
@@ -82,3 +83,22 @@ form{
     background:red;
 }
 
+#game_demands{
+    margin-top:0.3vw;
+    border: 0.01vw ridge cadetblue;
+    font-size: 1.5vw;
+    display:inline-block;
+}
+
+.empty{
+    display:none !important;
+}
+
+#game_demands h1{
+    float:left;
+    text-align: center;
+
+}
+#game_demands .demand{
+    text-align: center;
+}

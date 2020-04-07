@@ -117,7 +117,8 @@ function update_demands() {
     function print_demands(type) {
 
         let demands_div = document.getElementById("game_demands");
-        demands_div.innerHTML = "";
+        demands_div.classList.remove("empty");
+        demands_div.innerHTML = "<h1>Your demand: </h1>";
         let demands;
         let human_values;
         if (type == 'aces') {
@@ -165,6 +166,8 @@ function update_demands() {
         if (i == 3) {
             let demands_div = document.getElementById("game_demands");
             demands_div.innerHTML = "";
+            demands_div.classList.add("empty");
+            console.log('xd');
         }
     }
 }
