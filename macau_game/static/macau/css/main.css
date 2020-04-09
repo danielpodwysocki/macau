@@ -13,8 +13,18 @@ header{
     grid-template-columns: repeat(5,1fr);
 }
 
-form{
+#login-form{
     grid-column: 3;
+    margin-top:10vw;
+    background: cadetblue;
+    text-align: center;
+    padding-top: 2vw;
+    padding-bottom: 2vw;
+    color: orange;
+    border: cadetblue 0.5vw ridge;
+}
+#login-form button{
+    margin-top:0.2vw;
 }
 
 .user-card,.demand{
