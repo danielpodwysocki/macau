@@ -21,6 +21,8 @@ class Game(models.Model):
     # number of the starting player, assuming they move in a clockwise fashion and are sorted by id
     starting_player = models.SmallIntegerField()
     special_state = models.SmallIntegerField(default=0)
+    # indicates how many more players need to move/pass in order for the demand to be over
+    demand_time = models.SmallIntegerField(default=0)
 
 
 class Move(models.Model):

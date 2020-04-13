@@ -55,6 +55,15 @@ def draw(game, user):
     # create a move, don't tie any cards to it (since we didn't place any)
     move = models.Move(player=user, game=game)
     move.save()
-    # reset any battle or demand states
-    game.special_state = 0
+    # reset any battle states, advance demand state timers
+    if game.special_state > 0:
+        game.special_state = 0
+        game.demand_time = 0
+
+    if game.demand_time > 0:
+        game.demand_time -= 1
+
+    if game.demand_time == 0 and game.special_state < 0:
+        game.special_state = 0
+
     game.save()

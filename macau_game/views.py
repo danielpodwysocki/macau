@@ -196,14 +196,12 @@ def move(request):
             # -1 is adjusting for the value scheme for the demand outlined in models.Game
             demand_suit = -game.special_state / 10 - 1
 
-            if demand_suit == sample_suit:
-                pass
-                game.special_state = 0
+            if (demand_suit == sample_suit) or(top_card_value == 1 == sample_value):
+                if game.demand_time > 0:
+                    game.demand_time -= 1
+                if game.demand_time == 0:
+                    game.special_state = 0
                 game.save()
-            elif top_card_value == 1 == sample_value:
-                game.special_state = 0
-                game.save()
-                pass
             else:
                 raise Exception('bad_throw')
 
@@ -216,7 +214,7 @@ def move(request):
                     game.special_state += 5
                     game.save()
 
-        if sample_value == 1:
+        if sample_value == 1:  # if it's an ace
             if request.POST.get('demand') is None:
                 pass
             else:
@@ -224,7 +222,9 @@ def move(request):
                 demands = [1, 2, 3, 4]
                 if demand not in demands:
                     raise Exception("bad_demand")
-                game.special_state = (-demand-1)*10
+                game.special_state = (-demand - 1) * 10
+                game.demand_time = models.Seat.objects.filter(
+                    game=game, done=False).count()  # demand time is equal to amount of active players
                 game.save()
 
         if sample_value == 11:
@@ -237,6 +237,8 @@ def move(request):
                 if demand not in demands:
                     raise Exception("bad_demand")
                 game.special_state = -demand
+                game.demand_time = models.Seat.objects.filter(
+                    game=game, done=False).count()  # demand time is equal to amount of active players
                 game.save()
 
         # create the move object, delete cards from the player's hand, create the throw model
