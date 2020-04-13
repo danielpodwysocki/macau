@@ -13,9 +13,8 @@ header{
     grid-template-columns: repeat(5,1fr);
 }
 
-#login-form{
+.form-group{
     grid-column: 3;
-    margin-top:10vw;
     background: cadetblue;
     text-align: center;
     padding-top: 2vw;
@@ -23,8 +22,16 @@ header{
     color: orange;
     border: cadetblue 0.5vw ridge;
 }
-#login-form button{
+.form-group button{
     margin-top:0.2vw;
+}
+
+#form-join_game, #form-start_game{
+    margin-top:2vw;
+}
+
+#login-form{
+    margin-top:10vw;
 }
 
 .user-card,.demand{

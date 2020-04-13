@@ -3,14 +3,14 @@
 
 {% block content %}
 {% load crispy_forms_tags %}
-<form method='POST' action='start_game'>
+<form method='POST' action='start_game' class="form-group" id="form-start_game">
     {% csrf_token %}
     {{f_start_game|crispy}}
     <button type='submit'> Start a game </button>
     
 </form>
 
-<form method='POST' action='join_game'>
+<form method='POST' action='join_game' class="form-group" id="form-join_game">
     {% csrf_token %}
     {{f_join_game|crispy}}
     <button type='submit'> Join a game </button>
