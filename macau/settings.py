@@ -123,3 +123,4 @@ STATIC_URL = '/static/'
 LOGIN_URL = '/auth/login'
 LOGIN_REDIRECT_URL = '/macau/'
 LOGOUT_REDIRECT_URL = '/macau/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
