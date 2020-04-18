@@ -16,9 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
+from django.views.generic.base import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('macau/', include('macau_game.urls')),
-    path('auth/', include("django.contrib.auth.urls")), 
+    path('auth/', include("django.contrib.auth.urls")),
+    path('', RedirectView.as_view(pattern_name='index', permanent=False))
 ]
