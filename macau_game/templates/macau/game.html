@@ -2,7 +2,11 @@
 {% load static %}
 {% block content %}
     <script src="{% static 'macau/js/game.js' %}"></script>
-    <div id="game_resign" class="game-dashboard"><button>Resign</button></div>
+    <div id="game_resign" class="game-dashboard">
+            <form action="resign">
+                <button type='submit'>Resign</button>
+            </form>
+        </div>
     <!--div id="game_full">-</div-->
     <div class="game-dashboard">
                 <div id ="game_special_state"> </div>

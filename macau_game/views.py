@@ -307,7 +307,8 @@ def state(request):
     response['top_cards'] = ''
     response['move_count'] = move_count
     response['special'] = game.special_state
-    response['active_player'] = game_funcs.active_seat(game).seat_number
+    if game.full is True:
+        response['active_player'] = game_funcs.active_seat(game).seat_number
 
 # TODO: refactor the next if statement + the last_throw above using game_funcs, they're doing basically the same things
     if last_throw != None:
@@ -330,6 +331,27 @@ def state(request):
                     models.Card.objects.filter(game=game, player=player).count())
 
     return JsonResponse(response)
+
+
+@login_required
+@decorators.in_game
+def resign(request):
+    user = request.user
+    seat = models.Seat.objects.get(player=user)
+    seat.done = True
+    seat.save()
+
+    game = seat.game
+    seat_count = models.Seat.objects.filter(game=game, done=False).count()
+    if seat_count < 2:
+        seats = list(models.Seat.objects.filter(game=game))
+        for s in seats:
+            s.done = True
+            s.save()
+        game.is_finished = True
+        game.save()
+
+    return redirect('index')
 
 
 def error(request):  # TODO: returns an error message explaining what went wrong
