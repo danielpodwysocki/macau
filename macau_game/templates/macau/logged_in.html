@@ -1,0 +1,8 @@
+{%extends 'main/base.html'%}
+{% block header %}
+    <form action ="/auth/logout" id="header-logout">
+        <button type='submit'> Log out</button>
+    </form>
+    <div id="header-username">{{username}}</div>
+
+{%endblock header%}
