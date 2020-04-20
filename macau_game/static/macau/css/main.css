@@ -119,3 +119,23 @@ header{
 #game_demands .demand{
     text-align: center;
 }
+
+#header-logout{
+    float:right;
+    margin-right: 0.3vw;
+    height:2.5vw;
+    margin-top:0;
+}
+#header-logout button{
+    font-size: 1vw;
+    margin-top:0.25vw;
+    height:2vw;
+}
+
+#header-username{
+    float:right;
+    font-size: 1.5vw;
+    margin-top:0.5vw;
+    color:darkslategray;
+    margin-right:0.2vw;
+}

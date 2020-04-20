@@ -17,7 +17,8 @@ import json
 def index(request):  # TODO: this view lets you create or join a game
     u = request.user  # just for testing untill i make the index page
 
-    context = {'f_start_game': forms.StartGame, 'f_join_game': forms.JoinGame}
+    context = {'f_start_game': forms.StartGame,
+               'f_join_game': forms.JoinGame, 'username': u.username}
     return render(request, 'macau/index.html', context)
 
 
@@ -90,6 +91,8 @@ def join_game(request):
 @login_required
 @decorators.in_game
 def game(request):  # TODO the game view
+    u = request.user
+    context = {'username': u.username}
     return render(request, 'macau/game.html')
 
 
