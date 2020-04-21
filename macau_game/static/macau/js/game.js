@@ -215,8 +215,9 @@ async function update_json() {
     fetch("state")
         .then(resp => resp.json())
         .then(resp => {
-            if (data == undefined || data.move_count != resp.move_count) {
+            if ((data == undefined || data.move_count != resp.move_count) && resp.full) {
                 data = resp;
+
                 if (!players_created) {
                     create_players(data);
                     players_created = true;
@@ -225,8 +226,8 @@ async function update_json() {
                 update_active_player(data);
                 update_info(data);
 
-            }
 
+            }
         });
     await new Promise(r => setTimeout(r, 1000)); //apparently async is now the optimal way to do a "sleep"
     update_json();

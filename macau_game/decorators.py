@@ -26,10 +26,8 @@ def in_game(function):
         if player_seat_count == 0:
             return redirect('index')
         else:
-            seat = Seat.objects.get(player=request.user)
-            print(Seat.objects.filter(game=seat.game, done=False).count())
+            seat = Seat.objects.get(player=request.user, done=False)
             if Seat.objects.filter(done=False, game=seat.game).count() < 2 and seat.game.full is True:
-                print('xd')
                 return redirect('index')
 
             return function(request, *args, **kwargs)

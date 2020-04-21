@@ -139,7 +139,7 @@ def move(request):
         # check if the submitted cards are in the user's hand
         for t in throws:
             card_count = models.Card.objects.filter(
-                player=user, card=t).count()
+                player=user, card=t, game=game).count()
             if card_count == 0:
                 raise Exception('bad_throw')
 
@@ -322,7 +322,7 @@ def state(request):
     if game.full:
         # flat=True for values instead of one-tuples
         user_hand = list(models.Card.objects.filter(
-            player=user).values_list('card', flat=True))
+            player=user, game=game).values_list('card', flat=True))
         # we append the amount of cards each has (except for the user, we append his hand)
         for i in range(game.player_count):
             if i == seat.seat_number:
@@ -340,9 +340,13 @@ def state(request):
 @decorators.in_game
 def resign(request):
     user = request.user
-    seat = models.Seat.objects.get(player=user)
+    seat = models.Seat.objects.get(player=user, done=False)
+    cards = list(models.Card.objects.filter(player=user, game=seat.game))
     seat.done = True
     seat.save()
+
+    for c in cards:
+        c.delete()
 
     game = seat.game
     seat_count = models.Seat.objects.filter(game=game, done=False).count()
@@ -351,6 +355,11 @@ def resign(request):
         for s in seats:
             s.done = True
             s.save()
+
+        cards = list(models.Card.objects.filter(game=game))
+        for c in cards:
+            c.delete()
+
         game.is_finished = True
         game.save()
 
