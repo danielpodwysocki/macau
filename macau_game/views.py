@@ -14,8 +14,8 @@ import json
 
 @login_required
 @decorators.not_in_game
-def index(request):  # TODO: this view lets you create or join a game
-    u = request.user  # just for testing untill i make the index page
+def index(request):
+    u = request.user
 
     context = {'f_start_game': forms.StartGame,
                'f_join_game': forms.JoinGame, 'username': u.username}
@@ -105,7 +105,6 @@ def move(request):
     #     demand - indicates demanded value, for aces it's 1 to 4 (Clubs-Hearts-Spades-Diamonds card color order),
     #     for jacks it's the demanded card's value
     # TODO: create responses other than 'ok' and 'bad_throw'
-    # TODO: implement 'special' mechanics
     # TODO: move more functionality to game_funcs to improve readability
     response = {}
     response['return'] = 'ok'
@@ -235,7 +234,6 @@ def move(request):
                 pass
             else:
                 demand = int(request.POST.get('demand'))
-                # TODO: decide whether or not to allow queen demands
                 demands = [5, 6, 7, 8, 9, 10, 12]
                 if demand not in demands:
                     raise Exception("bad_demand")
@@ -274,7 +272,6 @@ def move(request):
         return JsonResponse(response)
 
 
-# TODO: return a json with the current state of the game, containing special macau game conditions(battle, demand, etc) and other info.
 @login_required
 @decorators.in_game
 def state(request):
@@ -287,7 +284,7 @@ def state(request):
         full - tells us if we're still waiting for more players
         position - our player's position at the table (his seat no., counting from 0) - this is needed, since from the player's view
         he always sits at the "bottom" of the "table" (viewport)
-        top_cards - an arr containg all the already thrown cards (TODO:)that haven't yet been reshuffled into the deck
+        top_cards - for the sake of simlicity it will be just the top card for now
         active_player - a number signyfing which players turn it is
         in the below comments the "user" refers to the one that made the request for the json,
         players are the rest of the people playing
@@ -313,7 +310,6 @@ def state(request):
     if game.full is True:
         response['active_player'] = game_funcs.active_seat(game).seat_number
 
-# TODO: refactor the next if statement + the last_throw above using game_funcs, they're doing basically the same things
     if last_throw != None:
         response['top_cards'] = last_throw.card
     else:
