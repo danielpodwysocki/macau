@@ -9,6 +9,7 @@ RUN ln -s /usr/bin/pip3 /usr/bin/pip
 RUN mkdir /django && mkdir /django/macau
 COPY ./ /django/macau
 RUN pip install -r /django/macau/requirements.txt
+RUN cp /usr/local/lib/python3.7/dist-packages/django/contrib/admin/static/admin /django/macau/macau_game/static/ -r
 RUN /django/macau/manage.py makemigrations && /django/macau/manage.py migrate 
 RUN cp /django/macau/configs/macau.conf /etc/apache2/sites-available
 RUN ln -s /etc/apache2/sites-available/macau.conf /etc/apache2/sites-enabled/macau.conf
