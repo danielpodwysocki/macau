@@ -172,8 +172,8 @@ def move(request):
         top_card_value = top_card - (top_card_suit-1) * 13
         # check if the throws[0] matches the top card of the game, or if it's not a queen of spades (goes on top of anything)
         if (sample_value == top_card_value or sample_suit == top_card_suit) is False and queen_of_spades is False:
-            # check if a color is being demanded (it overrides the rule of throwing same suit or value on same suit/value)
-            if game.special_state not in [-20, -30, -40, -50]:
+            # check if a color or value is being demanded (it overrides the rule of throwing same suit or value on same suit/value)
+            if game.special_state not in [-20, -30, -40, -50] and not -13 <= game.special_state < 0:
                 raise Exception('bad_throw')
 
         # Next two ifs check if there is a pending demand and if the bottom card of the throw addresses that

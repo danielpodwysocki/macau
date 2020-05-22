@@ -71,7 +71,10 @@ function update_info(state) {
     let color_demands = [-20, -30, -40, -50];
     if (special == 0) game_special_state.innerHTML = "No battle/demand"
     else if (special > 0) game_special_state.innerHTML = "Battle: " + special.toString() + " to be drawn";
-    else if (special < 0 && special > -14) game_special_state.innerHTML = "Demand: " + special.toString();
+    else if (special < 0 && special > -14) {
+        special = -special;
+        game_special_state.innerHTML = "Demand: " + special.toString();
+    }
     else {
         let suits = ['&#9827;', '&#9829;', '&#9824;', '&#9830;']; //unicode for clubs, hearts, spades and diamonds (CHaSeD order)
         //-2 to adjust both for indexes and the -20,-30,-40,-50 scheme
