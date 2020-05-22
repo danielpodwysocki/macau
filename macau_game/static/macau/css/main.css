@@ -38,12 +38,11 @@ header{
     float:left;
 }
 
-.user-card:hover{
-    background:red;
-}
 
 .player, #game_user_hand{
     border: cadetblue 7px ridge;
+    background: rgb(55, 100, 100);
+
 }
 
 .player_title{
@@ -85,19 +84,22 @@ header{
     width:10vw;
 }
 .game-active{
-    background: rgb(55, 100, 100);
+    background: cornflowerblue !important;
+
 }
 
 #game_user_hand{
-    text-align: center;    
+    text-align: center;
+    color:lightgoldenrodyellow;    
 }
 
 #game_user_cards{
     display: inline-block;
     margin-top: 1.75vw;
 }
-.card-toggled, .demand-toggled{
-    background:red;
+.card-toggled, .demand-toggled, .user-card:hover, .demand:hover{
+    background:lightblue;
+
 }
 
 #game_demands{
